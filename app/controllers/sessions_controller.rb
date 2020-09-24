@@ -1,15 +1,20 @@
 class SessionsController < ApplicationController
+  before_action :validate_user!, except: [:create]
   def new
   end
 
   def create
     user = User.find_by_email(params[:email])
     if user && user.authenticate(params[:password])
-      session[:user_id] = user.id
-      redirect_to root_url, notice: "Logged In!"
+      # session[:user_id] = user.id
+      # redirect_to root_url, notice: "Logged In!"
+      render json: user.as_json(only: [:email])
+      .merge("token": user.generate_jwt)
     else
-      flash.now[:alert] = "Email or Password is Invalid!"
-      render "new"
+      # flash.now[:alert] = "Email or Password is Invalid!"
+      # render "new"
+      render json: { errors: {'email or password': ["is invalid"]}}, 
+      status: :unprocessable_entity
     end
   end
 
